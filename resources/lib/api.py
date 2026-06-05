@@ -278,22 +278,22 @@ class InsysGoAPI:
             log_error("Login error: {}".format(ex))
             return False
 
-        token = data.get("token", "")
+        token = data.get("Token", "")
         if not token:
             log_error("Login: no token in response")
             return False
 
         # Parse expiry — "tokenExpirationTime": "2026-06-05T23:29:44+02:00"
-        expiry_str = data.get("tokenExpirationTime", "")
+        expiry_str = data.get("TokenExpirationTime", "")
         expiry_ts  = self._parse_expiry(expiry_str)
 
         self._token        = token
         self._token_expiry = expiry_ts
-        self._user_id      = data.get("userId", 0)
+        self._user_id      = data.get("UserId", 0)
         self._device_registered = False  # force re-register on new login
 
         # Cache available channel capabilities from profile
-        profile = data.get("profile", {})
+        profile = data.get("Profile", {})
         avail   = {str(c["id"]): c for c in profile.get("availableChannels", [])}
 
         _SessionCache.save({
@@ -344,9 +344,9 @@ class InsysGoAPI:
             log_error("RegisterDevice error: {}".format(ex))
             return False
 
-        result = data.get("result", {})
-        if not result.get("success", False):
-            code = result.get("code", -1)
+        result = data.get("Result", {})
+        if not result.get("Success", False):
+            code = result.get("Code", -1)
             if code == 9120:  # device_limit_exceeded
                 raise DeviceError("device_limit_exceeded", code)
             log_error("RegisterDevice failed: code={}".format(code))
@@ -385,14 +385,14 @@ class InsysGoAPI:
             "isParentalControlEnabled": False,
         }
         data1 = self._post("/v1/EpgTile/FilterChannelTiles", body1)
-        channel_groups = data1.get("channels", [])
+        channel_groups = data1.get("Channels", [])
 
         tile_ids = []
         codename_map = {}
         for group in channel_groups:
-            for tile in group.get("tiles", []):
-                tid      = tile.get("id", "")
-                codename = tile.get("codename", "")
+            for tile in group.get("Tiles", []):
+                tid      = tile.get("Id", "")
+                codename = tile.get("Codename", "")
                 if tid:
                     tile_ids.append(tid)
                     codename_map[tid] = codename
@@ -409,37 +409,37 @@ class InsysGoAPI:
                 "requestedTiles":   [{"id": tid} for tid in batch],
             }
             if self._token:
-                body2["token"] = self._token
+                body2["Token"] = self._token
             data2 = self._post("/v2/Tile/GetTiles", body2)
-            tiles.extend(data2.get("tiles", []))
+            tiles.extend(data2.get("Tiles", []))
 
         # Merge codenames back in and normalise
         result = []
         for tile in tiles:
-            tile_id  = tile.get("id", "")
-            codename = tile.get("codename", "") or codename_map.get(tile_id, "")
+            tile_id  = tile.get("Id", "")
+            codename = tile.get("Codename", "")
             logo_url = ""
-            for img in tile.get("images", []):
-                if img.get("role") == "icon-on-dark":
-                    logo_url = img.get("url", "")
+            for img in tile.get("Images", []):
+                if img.get("Role") == "icon-on-dark":
+                    logo_url = img.get("Url", "")
                     break
             if not logo_url:
-                for img in tile.get("images", []):
-                    if img.get("role") == "icon":
-                        logo_url = img.get("url", "")
+                for img in tile.get("Images", []):
+                    if img.get("Role") == "icon":
+                        logo_url = img.get("Url", "")
                         break
 
             result.append({
                 "id":              tile_id,
                 "codename":        codename,
-                "title":           tile.get("title", codename),
+                "title":           tile.get("Title", codename),
                 "logo":            logo_url,
-                "order":           tile.get("orderNumber", 999),
-                "category":        (tile.get("channelCategory") or {}).get("name", ""),
-                "has_catchup":     tile.get("isCatchupEnabled", False),
-                "catchup_days":    tile.get("catchupDays", 0),
-                "has_npvr":        tile.get("isNpvrEnabled", False),
-                "is_adult":        tile.get("isAdultContent", False),
+                "order":           tile.get("OrderNumber", 999),
+                "category":        (tile.get("ChannelCategory") or {}).get("Name", ""),
+                "has_catchup":     tile.get("IsCatchupEnabled", False),
+                "catchup_days":    tile.get("CatchupDays", 0),
+                "has_npvr":        tile.get("IsNpvrEnabled", False),
+                "is_adult":        tile.get("IsAdultContent", False),
             })
 
         result.sort(key=lambda c: c["order"])
@@ -461,7 +461,7 @@ class InsysGoAPI:
         if channel_tile_ids:
             params["channelTilesIds"] = ",".join(channel_tile_ids)
         data = self._get("/v1/EpgTile/FilterNowOnTvTiles", params)
-        return data.get("channels", [])
+        return data.get("Channels", [])
 
     def get_epg_schedule(self, channel_codenames, from_iso, to_iso):
         """
@@ -482,7 +482,7 @@ class InsysGoAPI:
         if self._token:
             body["token"] = self._token
         data = self._post("/v1/EpgTile/FilterProgramTiles", body)
-        return data.get("programs", {})
+        return data.get("Programs", {})
 
     def get_tile_details(self, tile_ids):
         """
@@ -496,7 +496,7 @@ class InsysGoAPI:
         if self._token:
             body["token"] = self._token
         data = self._post("/v2/Tile/GetTiles", body)
-        return data.get("tiles", [])
+        return data.get("Tiles", [])
 
     # -------------------------------------------------------------------------
     # Public: Streaming
@@ -553,9 +553,9 @@ class InsysGoAPI:
         }
         data = self._get("/v1/Player/AcquireContent", params)
 
-        result = data.get("Result") or data.get("result") or {}
-        if not result.get("Success", result.get("success", False)):
-            code     = result.get("Code", result.get("code", -1))
+        result = data.get("Result", {})
+        if not result.get("Success", False):
+            code     = result.get("Code", -1)
             msg_code = result.get("MessageCodename", "")
             log_error("AcquireContent failed: code={} msg={}".format(code, msg_code))
             if code in (9122, 9120):
@@ -667,7 +667,7 @@ class InsysGoAPI:
         tiles = self.get_tile_details([program_tile_id])
         if not tiles:
             raise APIError("Programme tile not found: {}".format(program_tile_id))
-        codename = tiles[0].get("codename", "")
+        codename = tiles[0].get("Codename", "")
         if not codename:
             raise APIError("Programme tile has no codename")
         return self.acquire_content(codename)
@@ -680,7 +680,7 @@ class InsysGoAPI:
         """GET /v1/IpottPlaylist/GetUserRecordings (nPVR list)"""
         try:
             data = self._get("/v1/IpottPlaylist/GetUserRecordings")
-            return data.get("recordings", data.get("items", []))
+            return data.get("Recordings", data.get("Items", []))
         except Exception as ex:
             log_error("get_recordings: {}".format(ex))
             return []

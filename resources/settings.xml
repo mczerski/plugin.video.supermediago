@@ -1,32 +1,138 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings version="1">
-
-  <category label="32001">
-    <setting id="username" type="text" label="32010" default=""/>
-    <setting id="password" type="text" label="32011" default="" option="hidden"/>
-    <setting id="device_name" type="text" label="32012" default="Kodi"/>
-  </category>
-
-  <category label="32020">
-    <setting id="stream_type" type="select" label="32021" default="0"
-              values="MPEG-DASH (zalecane)|HLS"/>
-    <setting id="use_inputstream" type="bool" label="32022" default="true"/>
-    <setting id="max_bitrate" type="select" label="32023" default="0"
-              values="Auto|1 Mbit/s|2 Mbit/s|4 Mbit/s|8 Mbit/s|Maksimum"/>
-  </category>
-
-  <category label="32030">
-    <setting id="show_epg_overlay" type="bool" label="32031" default="true"/>
-    <setting id="catchup_days" type="slider" label="32032" default="3"
-              range="1,1,7" option="int"/>
-  </category>
-
-  <category label="32040">
-    <setting id="api_url" type="text" label="32041"
-              default="https://api-supermedia.app.insysgo.pl"/>
-    <setting id="platform_codename" type="text" label="32042" default="www"/>
-    <setting id="app_version" type="text" label="32043" default="7.9.4.4"/>
-    <setting id="debug_log" type="bool" label="32044" default="false"/>
-  </category>
-
+	<section id="plugin.video.supermediago">
+		<category id="account" label="32001">
+			<group id="1" label="32001">
+				<setting id="username" type="string" label="32010" help="">
+					<level>0</level>
+					<default></default>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32010</heading>
+					</control>
+				</setting>
+				<setting id="password" type="string" label="32011" help="">
+					<level>0</level>
+					<default></default>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32011</heading>
+						<hidden>true</hidden>
+					</control>
+				</setting>
+				<setting id="device_name" type="string" label="32012" help="">
+					<level>1</level>
+					<default>Kodi</default>
+					<constraints>
+						<allowempty>false</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32012</heading>
+					</control>
+				</setting>
+			</group>
+		</category>
+		<category id="playback" label="32020">
+			<group id="2" label="32020">
+				<setting id="stream_type" type="integer" label="32021" help="">
+					<level>0</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="32050">0</option>
+							<option label="32051">1</option>
+						</options>
+					</constraints>
+					<control type="spinner" format="string"/>
+				</setting>
+				<setting id="use_inputstream" type="boolean" label="32022" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="max_bitrate" type="integer" label="32023" help="">
+					<level>1</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="32052">0</option>
+							<option label="32053">1</option>
+							<option label="32054">2</option>
+							<option label="32055">3</option>
+							<option label="32056">4</option>
+							<option label="32057">5</option>
+						</options>
+					</constraints>
+					<control type="spinner" format="string"/>
+					<dependencies>
+						<dependency type="enable" setting="use_inputstream">true</dependency>
+					</dependencies>
+				</setting>
+			</group>
+		</category>
+		<category id="epg" label="32030">
+			<group id="3" label="32030">
+				<setting id="show_epg_overlay" type="boolean" label="32031" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting id="catchup_days" type="integer" label="32032" help="">
+					<level>1</level>
+					<default>3</default>
+					<constraints>
+						<minimum>1</minimum>
+						<step>1</step>
+						<maximum>7</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
+			</group>
+		</category>
+		<category id="advanced" label="32040">
+			<group id="4" label="32040">
+				<setting id="api_url" type="string" label="32041" help="">
+					<level>2</level>
+					<default>https://api-supermedia.app.insysgo.pl</default>
+					<constraints>
+						<allowempty>false</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32041</heading>
+					</control>
+				</setting>
+				<setting id="platform_codename" type="string" label="32042" help="">
+					<level>2</level>
+					<default>www</default>
+					<constraints>
+						<allowempty>false</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32042</heading>
+					</control>
+				</setting>
+				<setting id="app_version" type="string" label="32043" help="">
+					<level>3</level>
+					<default>7.9.4.4</default>
+					<constraints>
+						<allowempty>false</allowempty>
+					</constraints>
+					<control type="edit" format="string">
+						<heading>32043</heading>
+					</control>
+				</setting>
+				<setting id="debug_log" type="boolean" label="32044" help="">
+					<level>2</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+			</group>
+		</category>
+	</section>
 </settings>

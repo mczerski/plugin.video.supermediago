@@ -83,9 +83,9 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
     epg_title = ""
     if epg_now:
         # epg_now has from/to but title only after GetTiles – use codename as fallback
-        epg_title = epg_now.get("title", "")
+        epg_title = epg_now.get("Title", "")
         if not epg_title:
-            epg_title = _codename_to_display(epg_now.get("codename", ""))
+            epg_title = _codename_to_display(epg_now.get("Codename", ""))
 
     play_url = build_url(base_url, action="play_live", codename=codename,
                          title=title, logo=logo)
@@ -148,17 +148,17 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
     prog tile from FilterProgramTiles / GetTiles:
       { id, codename, from, to, title?, images? }
     """
-    prog_id  = prog.get("id", "")
-    codename = prog.get("codename", "")
-    title    = prog.get("title", "") or _codename_to_display(codename)
-    start    = _parse_iso(prog.get("from", ""))
-    end      = _parse_iso(prog.get("to", ""))
+    prog_id  = prog.get("Id", "")
+    codename = prog.get("Codename", "")
+    title    = prog.get("Title", "") or _codename_to_display(codename)
+    start    = _parse_iso(prog.get("From", ""))
+    end      = _parse_iso(prog.get("To", ""))
 
     # Get thumbnail from images
     thumb = channel_logo
-    for img in prog.get("images", []):
-        if img.get("role") == "thumbnail":
-            thumb = img.get("url", "")
+    for img in prog.get("Images", []):
+        if img.get("Role") == "thumbnail":
+            thumb = img.get("Url", "")
             break
 
     duration = int((end - start).total_seconds()) if start and end else 0

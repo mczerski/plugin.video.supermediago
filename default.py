@@ -142,8 +142,8 @@ def view_channels():
         try:
             now_data = api.get_epg_now()
             for ch_data in now_data:
-                cname = ch_data.get("codename", "")
-                progs = ch_data.get("programs", [])
+                cname = ch_data.get("Codename", "")
+                progs = ch_data.get("Programs", [])
                 if cname and progs:
                     epg_now_map[cname] = progs[0]  # first = currently airing
         except Exception:
@@ -152,7 +152,7 @@ def view_channels():
     xbmc.executebuiltin("Dialog.Close(busydialognocancel)")
 
     for ch in channels:
-        epg = epg_now_map.get(ch.get("codename", ""))
+        epg = epg_now_map.get(ch.get("Codename", ""))
         add_channel_item(HANDLE, BASE_URL, ch, epg_now=epg)
 
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE])
@@ -221,17 +221,17 @@ def view_replay_list():
         return
 
     # Fetch full tile metadata for programme titles / thumbnails
-    tile_ids = [p["id"] for p in progs if p.get("id")]
+    tile_ids = [p["Id"] for p in progs if p.get("Id")]
     tile_map = {}
     if tile_ids:
         try:
             tiles    = api.get_tile_details(tile_ids[:50])  # first 50
-            tile_map = {t["id"]: t for t in tiles}
+            tile_map = {t["Id"]: t for t in tiles}
         except Exception:
             pass
 
-    for prog in sorted(progs, key=lambda p: p.get("from", "")):
-        pid  = prog.get("id", "")
+    for prog in sorted(progs, key=lambda p: p.get("From", "")):
+        pid  = prog.get("Id", "")
         meta = tile_map.get(pid, prog)
         add_program_item(HANDLE, BASE_URL, meta, channel_logo=logo)
 
