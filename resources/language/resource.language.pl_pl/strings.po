@@ -1,0 +1,221 @@
+# Kodi Media Center language file
+# Addon Name: SupermediaGO
+# Addon id: plugin.video.supermediago
+# Addon Provider: community
+msgid ""
+msgstr ""
+"Project-Id-Version: SupermediaGO\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-05 00:00+0200\n"
+"PO-Revision-Date: 2026-06-05 00:00+0200\n"
+"Last-Translator: community\n"
+"Language-Team: Polish\n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgctxt "#32000"
+msgid "SupermediaGO"
+msgstr "SupermediaGO"
+
+msgctxt "#32001"
+msgid "Konto"
+msgstr "Konto"
+
+msgctxt "#32002"
+msgid "Telewizja na żywo"
+msgstr "Telewizja na żywo"
+
+msgctxt "#32003"
+msgid "Replay TV"
+msgstr "Replay TV"
+
+msgctxt "#32004"
+msgid "Nagrania"
+msgstr "Nagrania"
+
+msgctxt "#32005"
+msgid "Ustawienia"
+msgstr "Ustawienia"
+
+msgctxt "#32006"
+msgid "Wszystkie kanały"
+msgstr "Wszystkie kanały"
+
+msgctxt "#32007"
+msgid "Wybierz kanał do Replay TV"
+msgstr "Wybierz kanał do Replay TV"
+
+msgctxt "#32008"
+msgid "Dzisiaj"
+msgstr "Dzisiaj"
+
+msgctxt "#32009"
+msgid "Wczoraj"
+msgstr "Wczoraj"
+
+msgctxt "#32010"
+msgid "Login (ID klienta lub e-mail)"
+msgstr "Login (ID klienta lub e-mail)"
+
+msgctxt "#32011"
+msgid "Hasło"
+msgstr "Hasło"
+
+msgctxt "#32012"
+msgid "Nazwa urządzenia"
+msgstr "Nazwa urządzenia"
+
+msgctxt "#32020"
+msgid "Odtwarzanie"
+msgstr "Odtwarzanie"
+
+msgctxt "#32021"
+msgid "Format strumienia"
+msgstr "Format strumienia"
+
+msgctxt "#32022"
+msgid "Użyj inputstream.adaptive"
+msgstr "Użyj inputstream.adaptive"
+
+msgctxt "#32023"
+msgid "Maksymalna przepustowość"
+msgstr "Maksymalna przepustowość"
+
+msgctxt "#32030"
+msgid "EPG"
+msgstr "EPG"
+
+msgctxt "#32031"
+msgid "Pokaż aktualny program na kanale"
+msgstr "Pokaż aktualny program na kanale"
+
+msgctxt "#32032"
+msgid "Dni dostępne w Replay TV"
+msgstr "Dni dostępne w Replay TV"
+
+msgctxt "#32040"
+msgid "Zaawansowane"
+msgstr "Zaawansowane"
+
+msgctxt "#32041"
+msgid "URL API"
+msgstr "URL API"
+
+msgctxt "#32042"
+msgid "Kod platformy"
+msgstr "Kod platformy"
+
+msgctxt "#32043"
+msgid "Wersja aplikacji"
+msgstr "Wersja aplikacji"
+
+msgctxt "#32044"
+msgid "Logowanie debugowania"
+msgstr "Logowanie debugowania"
+
+msgctxt "#32100"
+msgid "Logowanie..."
+msgstr "Logowanie..."
+
+msgctxt "#32101"
+msgid "Zalogowano pomyślnie."
+msgstr "Zalogowano pomyślnie."
+
+msgctxt "#32102"
+msgid "Błąd logowania. Sprawdź login i hasło."
+msgstr "Błąd logowania. Sprawdź login i hasło."
+
+msgctxt "#32103"
+msgid "Skonfiguruj login i hasło w Ustawieniach."
+msgstr "Skonfiguruj login i hasło w Ustawieniach."
+
+msgctxt "#32104"
+msgid "Sesja wygasła. Zaloguj się ponownie."
+msgstr "Sesja wygasła. Zaloguj się ponownie."
+
+msgctxt "#32105"
+msgid "Błąd sieci. Sprawdź połączenie."
+msgstr "Błąd sieci. Sprawdź połączenie."
+
+msgctxt "#32106"
+msgid "Brak dostępnych kanałów."
+msgstr "Brak dostępnych kanałów."
+
+msgctxt "#32107"
+msgid "Strumień niedostępny."
+msgstr "Strumień niedostępny."
+
+msgctxt "#32108"
+msgid "inputstream.adaptive nie znaleziono. Zainstaluj do poprawnego odtwarzania."
+msgstr "inputstream.adaptive nie znaleziono. Zainstaluj do poprawnego odtwarzania."
+
+msgctxt "#32109"
+msgid "Brak treści Replay TV."
+msgstr "Brak treści Replay TV."
+
+msgctxt "#32110"
+msgid "Brak nagrań."
+msgstr "Brak nagrań."
+
+msgctxt "#32111"
+msgid "Rejestrowanie urządzenia..."
+msgstr "Rejestrowanie urządzenia..."
+
+msgctxt "#32112"
+msgid "Ładowanie kanałów..."
+msgstr "Ładowanie kanałów..."
+
+msgctxt "#32113"
+msgid "Ładowanie programu..."
+msgstr "Ładowanie programu..."
+
+msgctxt "#32114"
+msgid "2 dni temu"
+msgstr "2 dni temu"
+
+msgctxt "#32115"
+msgid "3 dni temu"
+msgstr "3 dni temu"
+
+msgctxt "#32116"
+msgid "Nagraj"
+msgstr "Nagraj"
+
+msgctxt "#32117"
+msgid "Usuń nagranie"
+msgstr "Usuń nagranie"
+
+msgctxt "#32118"
+msgid "Zaplanowane"
+msgstr "Zaplanowane"
+
+msgctxt "#32119"
+msgid "W trakcie nagrywania"
+msgstr "W trakcie nagrywania"
+
+msgctxt "#32120"
+msgid "Nagrane"
+msgstr "Nagrane"
+
+msgctxt "#32121"
+msgid "Wyloguj"
+msgstr "Wyloguj"
+
+msgctxt "#32122"
+msgid "Wylogowano."
+msgstr "Wylogowano."
+
+msgctxt "#32123"
+msgid "Błąd API: {0}"
+msgstr "Błąd API: {0}"
+
+msgctxt "#32124"
+msgid "Błąd DRM. Zainstaluj Widevine CDM przez InputStream Helper."
+msgstr "Błąd DRM. Zainstaluj Widevine CDM przez InputStream Helper."
+
+msgctxt "#32125"
+msgid "Urządzenie zablokowane lub limit urządzeń osiągnięty."
+msgstr "Urządzenie zablokowane lub limit urządzeń osiągnięty."

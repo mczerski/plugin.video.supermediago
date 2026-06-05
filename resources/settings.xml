@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings version="1">
+
+  <category label="32001">
+    <setting id="username" type="text" label="32010" default=""/>
+    <setting id="password" type="text" label="32011" default="" option="hidden"/>
+    <setting id="device_name" type="text" label="32012" default="Kodi"/>
+  </category>
+
+  <category label="32020">
+    <setting id="stream_type" type="select" label="32021" default="0"
+              values="MPEG-DASH (zalecane)|HLS"/>
+    <setting id="use_inputstream" type="bool" label="32022" default="true"/>
+    <setting id="max_bitrate" type="select" label="32023" default="0"
+              values="Auto|1 Mbit/s|2 Mbit/s|4 Mbit/s|8 Mbit/s|Maksimum"/>
+  </category>
+
+  <category label="32030">
+    <setting id="show_epg_overlay" type="bool" label="32031" default="true"/>
+    <setting id="catchup_days" type="slider" label="32032" default="3"
+              range="1,1,7" option="int"/>
+  </category>
+
+  <category label="32040">
+    <setting id="api_url" type="text" label="32041"
+              default="https://api-supermedia.app.insysgo.pl"/>
+    <setting id="platform_codename" type="text" label="32042" default="www"/>
+    <setting id="app_version" type="text" label="32043" default="7.9.4.4"/>
+    <setting id="debug_log" type="bool" label="32044" default="false"/>
+  </category>
+
+</settings>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.supermediago"
+       name="SupermediaGO"
+       version="2.0.0"
+       provider-name="community">
+
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.requests" version="2.22.0"/>
+    <import addon="inputstream.adaptive" version="2.0.0" optional="true"/>
+  </requires>
+
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>video</provides>
+  </extension>
+
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <language>pl</language>
+    <license>GPL-2.0-or-later</license>
+    <summary lang="en">SupermediaGO – live TV and Replay for Supermedia subscribers</summary>
+    <summary lang="pl">SupermediaGO – telewizja na żywo i Replay dla abonentów Supermedia</summary>
+    <description lang="en">
+      Watch live TV channels, Replay TV (last 3 days) and Recordings
+      from your SupermediaGO subscription directly in Kodi.
+      Requires an active SupermediaGO account (Supermedia internet subscriber).
+      Streams are DRM-protected (Widevine). inputstream.adaptive + Widevine CDM required.
+      NOTE: Unofficial community addon, not affiliated with Supermedia Interactive
+      or Insys Video Technologies / Big Blue Marble.
+    </description>
+    <description lang="pl">
+      Oglądaj kanały na żywo, Replay TV (ostatnie 3 dni) i Nagrania
+      z subskrypcji SupermediaGO bezpośrednio w Kodi.
+      Wymaga aktywnego konta SupermediaGO (abonent internetu Supermedia).
+      Strumienie są zabezpieczone DRM (Widevine). Wymagane inputstream.adaptive + Widevine CDM.
+      UWAGA: Nieoficjalny dodatek społecznościowy, niepowiązany z Supermedia Interactive
+      ani Insys Video Technologies / Big Blue Marble.
+    </description>
+    <disclaimer lang="pl">
+      Tylko dla aktywnych abonentów Supermedia. Używaj na własne ryzyko.
+    </disclaimer>
+    <website>https://www.supermediago.pl</website>
+    <news>
+      v2.0.0 – Pełna implementacja na podstawie analizy HAR i APK.
+               Prawdziwe endpointy API InsysGO: Authenticate, AcquireContent,
+               FilterChannelTiles, GetTiles, FilterNowOnTvTiles, FilterProgramTiles.
+               Obsługa DRM Widevine przez wigo.la.drm.cloud.
+               Heartbeat CAP/Ping podczas odtwarzania. Replay TV. Nagrania nPVR.
+    </news>
+  </extension>
+
+</addon>
