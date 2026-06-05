@@ -136,23 +136,46 @@ def view_channels():
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
         return
 
-    # Build EPG-now dict keyed by channel codename
+    # Build EPG-now dict keyed by channel codename, enriched with full tile metadata
     epg_now_map = {}
     if ADDON.getSettingBool("show_epg_overlay") and channels:
         try:
             now_data = api.get_epg_now()
+
+            # Step 1: collect the currently-airing program stub per channel.
+            # FilterNowOnTvTiles gives id/codename/from/to but no title/description/thumb.
+            prog_id_to_channel = {}  # program tile id -> channel codename
             for ch_data in now_data:
                 cname = ch_data.get("Codename", "")
                 progs = ch_data.get("Programs", [])
                 if cname and progs:
-                    epg_now_map[cname] = progs[0]  # first = currently airing
+                    prog      = progs[0]
+                    prog_id   = prog.get("Id", "")
+                    if prog_id:
+                        prog_id_to_channel[prog_id] = cname
+                    # Store bare stub as fallback (has codename for display)
+                    epg_now_map[cname] = prog
+
+            # Step 2: batch-fetch full tile metadata for ALL current programs in one call.
+            # GetTiles returns: title, description, shortDescription, images[{role,url}]
+            if prog_id_to_channel:
+                try:
+                    tiles = api.get_tile_details(list(prog_id_to_channel.keys()))
+                    for tile in tiles:
+                        tile_id = tile.get("Id", "")
+                        cname   = prog_id_to_channel.get(tile_id, "")
+                        if cname:
+                            epg_now_map[cname] = tile  # replace stub with full metadata
+                except Exception:
+                    pass  # fallback: bare stubs already in epg_now_map
+
         except Exception:
             pass  # EPG overlay is nice-to-have, not critical
 
     xbmc.executebuiltin("Dialog.Close(busydialognocancel)")
 
     for ch in channels:
-        epg = epg_now_map.get(ch.get("Codename", ""))
+        epg = epg_now_map.get(ch.get("codename", ""))
         add_channel_item(HANDLE, BASE_URL, ch, epg_now=epg)
 
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE])

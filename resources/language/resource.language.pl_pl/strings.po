@@ -219,3 +219,35 @@ msgstr "Błąd DRM. Zainstaluj Widevine CDM przez InputStream Helper."
 msgctxt "#32125"
 msgid "Urządzenie zablokowane lub limit urządzeń osiągnięty."
 msgstr "Urządzenie zablokowane lub limit urządzeń osiągnięty."
+
+msgctxt "#32050"
+msgid "MPEG-DASH (zalecane)"
+msgstr "MPEG-DASH (zalecane)"
+
+msgctxt "#32051"
+msgid "HLS"
+msgstr "HLS"
+
+msgctxt "#32052"
+msgid "Auto"
+msgstr "Auto"
+
+msgctxt "#32053"
+msgid "1 Mbit/s"
+msgstr "1 Mbit/s"
+
+msgctxt "#32054"
+msgid "2 Mbit/s"
+msgstr "2 Mbit/s"
+
+msgctxt "#32055"
+msgid "4 Mbit/s"
+msgstr "4 Mbit/s"
+
+msgctxt "#32056"
+msgid "8 Mbit/s"
+msgstr "8 Mbit/s"
+
+msgctxt "#32057"
+msgid "Maksimum"
+msgstr "Maksimum"

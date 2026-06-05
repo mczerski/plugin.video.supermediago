@@ -69,37 +69,60 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
     channel dict from api.get_channel_list():
       { id, codename, title, logo, order, category, has_catchup, has_npvr }
 
-    epg_now: programme dict { from, to, title?, codename } or None
+    epg_now: full program tile dict from GetTiles (after enrichment in view_channels)
+             containing: title, description, shortDescription, images[{role,url}]
+             OR bare stub from FilterNowOnTvTiles: {id, codename, from, to}
     """
     codename = channel.get("codename", "")
     title    = channel.get("title", codename)
     logo     = channel.get("logo", "")
     order    = channel.get("order", 999)
 
-    # Label: "  2  TVN HD"  (right-aligned number for natural sort)
-    label    = "{:>3}  {}".format(order, title) if order else title
-
-    # Overlay current programme title as label2
+    # --- Extract EPG data (handles both full tile and bare stub) ---
     epg_title = ""
+    epg_plot  = ""
+    epg_thumb = ""
     if epg_now:
-        # epg_now has from/to but title only after GetTiles – use codename as fallback
-        epg_title = epg_now.get("Title", "")
-        if not epg_title:
-            epg_title = _codename_to_display(epg_now.get("Codename", ""))
+        epg_title = (epg_now.get("Title")
+                     or _codename_to_display(
+                            epg_now.get("Codename", "")))
+        epg_plot  = (epg_now.get("Description")
+                     or epg_now.get("ShortDescription")
+                     or "")
+        # Pick thumbnail from program images list
+        for img in epg_now.get("Images", []):
+            role = img.get("Role", "")
+            url  = img.get("Url",  "")
+            if role == "thumbnail" and url:
+                epg_thumb = url
+                break
+
+    label = "{} - {}".format(title, epg_title)
 
     play_url = build_url(base_url, action="play_live", codename=codename,
-                         title=title, logo=logo)
+                         title=label, logo=logo)
 
     li = xbmcgui.ListItem(label=label)
-    if epg_title:
-        li.setLabel2(epg_title)
-    li.setArt({"thumb": logo, "icon": logo})
 
+    # Art assignments:
+    #   icon   — channel logo, shown as the small icon in the list row itself
+    #   thumb  — shown in the info panel when the item is focused; use program
+    #            thumbnail when available, otherwise fall back to channel logo
+    #   fanart — background image in the info/details panel
+    art = {"icon": logo, "thumb": logo}
+    #if epg_thumb:
+    #    art["thumb"]  = epg_thumb
+    #    art["fanart"] = epg_thumb
+    #else:
+    #    art["thumb"] = logo
+    li.setArt(art)
+
+    # Info tag — drives the info panel shown when the item is selected
     tag = li.getVideoInfoTag()
-    tag.setTitle(title)
-    if epg_title:
-        tag.setPlot(epg_title)
+    tag.setTitle(label)
+    tag.setPlot(epg_plot or epg_title)
     tag.setMediaType("video")
+    tag.setPlaycount(0)
 
     li.setProperty("IsPlayable", "true")
 
@@ -151,8 +174,10 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
     prog_id  = prog.get("Id", "")
     codename = prog.get("Codename", "")
     title    = prog.get("Title", "") or _codename_to_display(codename)
-    start    = _parse_iso(prog.get("From", ""))
-    end      = _parse_iso(prog.get("To", ""))
+    short_description = prog.get("ShortDescription", "")
+    description = prog.get("Description", "")
+    start    = _parse_iso(prog.get("Start", ""))
+    end      = _parse_iso(prog.get("Stop", ""))
 
     # Get thumbnail from images
     thumb = channel_logo
@@ -169,9 +194,10 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
 
     li = xbmcgui.ListItem(label=label)
     li.setArt({"thumb": thumb})
+    li.setInfo("video", {"plot": description, "plotoutline": short_description})
 
     tag = li.getVideoInfoTag()
-    tag.setTitle(title)
+    tag.setTitle(label)
     tag.setMediaType("video")
     if duration:
         tag.setDuration(duration)

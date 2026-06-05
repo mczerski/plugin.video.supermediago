@@ -141,13 +141,6 @@ class InsysGoAPI:
     _DEFAULT_BASE = "https://api-supermedia.app.insysgo.pl"
     _CAP_URL      = "https://cap-ha.app.insysgo.pl/v1/CAP/Ping"
 
-    # Confirmed from HAR: $headers query param is always sent by the web client
-    # We replicate the same headers the web app uses
-    _FIXED_HEADERS = {
-        "X-Api-Date-Format": "iso",
-        "X-Api-Camel-Case":  "true",
-    }
-
     # Media type codes found in AcquireContent response
     FORMAT_TYPE_HLS  = 2
     FORMAT_TYPE_DASH = 9
@@ -213,7 +206,7 @@ class InsysGoAPI:
             raise NetworkError(str(ex))
 
     def _post(self, path, body, raw_url=None):
-        url = (raw_url or self._base + path)
+        url = raw_url or (self._base + path)
         debug("POST {} body={}".format(url, str(body)[:200]))
         try:
             r = self._session.post(url, json=body, timeout=15)
@@ -403,7 +396,7 @@ class InsysGoAPI:
         # Step 2 – get full tile metadata in batches of 50
         tiles = []
         for i in range(0, len(tile_ids), 50):
-            batch = tile_ids[i:i+50]
+            batch = tile_ids[i:i + 50]
             body2 = {
                 "platformCodename": self._platform,
                 "requestedTiles":   [{"id": tid} for tid in batch],

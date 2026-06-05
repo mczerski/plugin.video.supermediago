@@ -7,7 +7,7 @@
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests" version="2.22.0"/>
-    <import addon="inputstream.adaptive" version="2.0.0" optional="true"/>
+    <import addon="script.module.inputstreamhelper" />
   </requires>
 
   <extension point="xbmc.python.pluginsource" library="default.py">
@@ -15,6 +15,9 @@
   </extension>
 
   <extension point="xbmc.addon.metadata">
+    <assets>
+        <icon>resources/media/icon.png</icon>
+    </assets>
     <platform>all</platform>
     <language>pl</language>
     <license>GPL-2.0-or-later</license>
@@ -40,13 +43,6 @@
       Tylko dla aktywnych abonentów Supermedia. Używaj na własne ryzyko.
     </disclaimer>
     <website>https://www.supermediago.pl</website>
-    <news>
-      v2.0.0 – Pełna implementacja na podstawie analizy HAR i APK.
-               Prawdziwe endpointy API InsysGO: Authenticate, AcquireContent,
-               FilterChannelTiles, GetTiles, FilterNowOnTvTiles, FilterProgramTiles.
-               Obsługa DRM Widevine przez wigo.la.drm.cloud.
-               Heartbeat CAP/Ping podczas odtwarzania. Replay TV. Nagrania nPVR.
-    </news>
   </extension>
 
 </addon>
