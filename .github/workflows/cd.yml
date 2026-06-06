@@ -1,0 +1,33 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create zip export
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PROJECT_NAME="plugin.video.supermediago"   # <-- change this later
+          ZIP_NAME="${PROJECT_NAME}-${TAG}.zip"
+          # create zip of repository contents
+          git archive --format=zip --output "${ZIP_NAME}" --prefix "${PROJECT_NAME}/" "$TAG"
+
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Create GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_NAME }}
