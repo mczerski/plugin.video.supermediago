@@ -1,0 +1,7 @@
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+check.sh export-ignore
+createvenv.sh export-ignore
+fix.sh export-ignore
+ruff.toml export-ignore
