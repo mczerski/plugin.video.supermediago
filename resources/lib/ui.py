@@ -5,12 +5,7 @@ Uses the new getVideoInfoTag() API (Kodi 20+) instead of deprecated setInfo().
 
 import datetime
 import sys
-
-try:
-    from urllib.parse import urlencode, parse_qs, urlparse
-except ImportError:
-    from urlparse import parse_qs, urlparse
-    from urllib import urlencode
+from urllib.parse import urlencode
 
 import xbmcgui
 import xbmcplugin
@@ -25,14 +20,6 @@ def _s(n):
 
 def build_url(base, **kw):
     return "{}?{}".format(base, urlencode({k: v for k, v in kw.items() if v is not None}))
-
-
-def parse_params(argv2):
-    """Parse sys.argv[2] query string into dict."""
-    if not argv2 or argv2 == "?":
-        return {}
-    qs = argv2.lstrip("?")
-    return {k: v[0] for k, v in parse_qs(qs).items()}
 
 
 def add_dir(handle, label, url, is_folder=True, art=None, info=None, props=None):
@@ -81,7 +68,6 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
     # --- Extract EPG data (handles both full tile and bare stub) ---
     epg_title = ""
     epg_plot  = ""
-    epg_thumb = ""
     if epg_now:
         epg_title = (epg_now.get("Title")
                      or _codename_to_display(
@@ -89,32 +75,15 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
         epg_plot  = (epg_now.get("Description")
                      or epg_now.get("ShortDescription")
                      or "")
-        # Pick thumbnail from program images list
-        for img in epg_now.get("Images", []):
-            role = img.get("Role", "")
-            url  = img.get("Url",  "")
-            if role == "thumbnail" and url:
-                epg_thumb = url
-                break
 
-    label = "{} - {}".format(title, epg_title)
+    label = "{} - {}: {}".format(order, title, epg_title)
 
     play_url = build_url(base_url, action="play_live", codename=codename,
                          title=label, logo=logo)
 
     li = xbmcgui.ListItem(label=label)
 
-    # Art assignments:
-    #   icon   — channel logo, shown as the small icon in the list row itself
-    #   thumb  — shown in the info panel when the item is focused; use program
-    #            thumbnail when available, otherwise fall back to channel logo
-    #   fanart — background image in the info/details panel
-    art = {"icon": logo, "thumb": logo}
-    #if epg_thumb:
-    #    art["thumb"]  = epg_thumb
-    #    art["fanart"] = epg_thumb
-    #else:
-    #    art["thumb"] = logo
+    art = {"icon": logo}
     li.setArt(art)
 
     # Info tag — drives the info panel shown when the item is selected

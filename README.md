@@ -1,7 +1,7 @@
 # plugin.video.supermediago v2.0.0
 
 Nieoficjalny dodatek Kodi dla usługi **SupermediaGO** (supermediago.pl),
-oparty na analizie pliku HAR z przeglądarki oraz dekompilacji APK v7.6.7.
+oparty na analizie pliku HAR z przeglądarki.
 
 ---
 
@@ -45,7 +45,7 @@ oparty na analizie pliku HAR z przeglądarki oraz dekompilacji APK v7.6.7.
 
 ---
 
-## Szczegóły techniczne (analiza HAR + APK)
+## Szczegóły techniczne (analiza HAR)
 
 ### Potwierdzone endpointy API
 
@@ -104,13 +104,6 @@ POST https://cap-ha.app.insysgo.pl/v1/CAP/Ping
 Body: { SessionId, DurationSeconds, ProgressSeconds:-1, Counter, Status:"Play" }
 ```
 Brak heartbeatu przez 181s = wymuszenie zakończenia sesji.
-
-### Platforma APK
-
-APK `pl.supermedia.ott` to aplikacja **Xamarin/.NET** (nie React Native).
-Kod .NET skompilowany do `assemblies/assemblies.blob`.
-Smali (`crc64*` katalogi) to wrappery Xamarin dla Androida.
-Platforma: **InsysGO** (Insys Video Technologies / Big Blue Marble, Poznań).
 
 ---
 

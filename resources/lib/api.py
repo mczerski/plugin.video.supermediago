@@ -1,12 +1,10 @@
 """
 SupermediaGO / InsysGO API Client
 ===================================
-Built from HAR capture of www.supermediago.pl (session 2026-06-04)
-and APK decompilation of pl.supermedia.ott v7.6.7.
+Built from HAR capture of www.supermediago.pl
 
 Real API base:  https://api-supermedia.app.insysgo.pl
 Platform code:  www
-App version:    7.9.4.4
 
 Auth flow (confirmed from HAR):
   1. POST /v1/InsysGoAccount/Authenticate  → token (UUID string, ~24h)
@@ -33,36 +31,21 @@ import hashlib
 import json
 import os
 import time
+import datetime
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 import xbmc
 import xbmcaddon
 import xbmcvfs
 
-try:
-    import requests
-    from requests.adapters import HTTPAdapter
-    from urllib3.util.retry import Retry
-except ImportError:
-    raise ImportError("script.module.requests is required")
-
-ADDON    = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo("id")
-PROFILE  = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
+from .logging import log_info, log_error, log_warn, debug
 
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
-
-def _log(msg, level=xbmc.LOGDEBUG):
-    xbmc.log("[{}] {}".format(ADDON_ID, msg), level=level)
-
-def log_info(msg):  _log(msg, xbmc.LOGINFO)
-def log_error(msg): _log(msg, xbmc.LOGERROR)
-def log_warn(msg):  _log(msg, xbmc.LOGWARNING)
-def debug(msg):
-    if ADDON.getSettingBool("debug_log"):
-        _log(msg, xbmc.LOGINFO)
+ADDON = xbmcaddon.Addon()
+PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
 
 
 # ---------------------------------------------------------------------------
@@ -146,9 +129,8 @@ class InsysGoAPI:
     FORMAT_TYPE_DASH = 9
 
     def __init__(self):
-        self._base     = ADDON.getSetting("api_url").rstrip("/") or self._DEFAULT_BASE
+        self._base = ADDON.getSetting("api_url").rstrip("/") or self._DEFAULT_BASE
         self._platform = ADDON.getSetting("platform_codename") or "www"
-        self._app_ver  = ADDON.getSetting("app_version") or "7.9.4.4"
 
         # Build a stable device key from the Kodi machine name
         # Must be 32 hex chars – matches format seen in HAR (c13d18266a8f47b86e41566e6a7ab0ba)
@@ -703,7 +685,6 @@ class InsysGoAPI:
             return time.time() + 86400
         try:
             # Handle offset format: "2026-06-05T23:29:44+02:00"
-            import datetime
             s = expiry_str
             # Python 3.6 fromisoformat doesn't handle timezone offset well
             if s.endswith("Z"):

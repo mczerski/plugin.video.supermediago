@@ -10,7 +10,7 @@
     <import addon="script.module.inputstreamhelper" />
   </requires>
 
-  <extension point="xbmc.python.pluginsource" library="default.py">
+  <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>
   </extension>
 
@@ -39,6 +39,9 @@
       UWAGA: Nieoficjalny dodatek społecznościowy, niepowiązany z Supermedia Interactive
       ani Insys Video Technologies / Big Blue Marble.
     </description>
+    <disclaimer lang="en">
+        For Supermedia active subscribers only. Use at Your own risk.
+    </disclaimer>
     <disclaimer lang="pl">
       Tylko dla aktywnych abonentów Supermedia. Używaj na własne ryzyko.
     </disclaimer>

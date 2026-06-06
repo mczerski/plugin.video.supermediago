@@ -8,35 +8,48 @@ Kodi calls this with:
 """
 
 import sys
-import os
-
-# Make resources/lib importable
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_LIB  = os.path.join(_HERE, "resources", "lib")
-if _LIB not in sys.path:
-    sys.path.insert(0, _LIB)
+import threading
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
-from api    import InsysGoAPI, AuthError, DeviceError, NetworkError, APIError
-from player import resolve_stream
-from ui     import (build_url, parse_params, add_dir, end_dir,
-                    add_channel_item, add_replay_date_items,
-                    add_program_item, add_recording_item)
+from urllib.parse import parse_qs
 
-ADDON    = xbmcaddon.Addon()
+from resources.lib.api import InsysGoAPI, AuthError, DeviceError, NetworkError, APIError
+from resources.lib.player import resolve_stream
+from resources.lib.ui import (
+    build_url,
+    add_dir,
+    end_dir,
+    add_channel_item,
+    add_replay_date_items,
+    add_program_item,
+    add_recording_item,
+)
+from resources.lib.logging import log_error, log_warn, debug
+
+
+def parse_params(argv2):
+    """Parse sys.argv[2] query string into dict."""
+    if not argv2 or argv2 == "?":
+        return {}
+    qs = argv2.lstrip("?")
+    return {k: v[0] for k, v in parse_qs(qs).items()}
+
+
+ADDON = xbmcaddon.Addon()
 BASE_URL = sys.argv[0]
-HANDLE   = int(sys.argv[1])
-PARAMS   = parse_params(sys.argv[2] if len(sys.argv) > 2 else "")
-
-_api = None
+HANDLE = int(sys.argv[1])
+PARAMS = parse_params(sys.argv[2] if len(sys.argv) > 2 else "")
 
 
 def _s(n):
     return ADDON.getLocalizedString(n)
+
+
+_api = None
 
 
 def get_api():
@@ -81,7 +94,7 @@ def require_login():
 
 def _handle_error(ex):
     """Show appropriate notification for API errors and log."""
-    xbmc.log("[plugin.video.supermediago] Error: {}".format(ex), xbmc.LOGERROR)
+    log_error("Error: {}".format(ex))
     if isinstance(ex, AuthError):
         msg = _s(32104)
         get_api().logout()
@@ -115,7 +128,7 @@ def view_main_menu():
     add_dir(HANDLE, _s(32005),
             build_url(BASE_URL, action="settings"),
             is_folder=False,
-            art={"icon": "DefaultAddonSettings.png"})
+            art={"icon": "DefaultAddon.png"})
 
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE], content="")
 
@@ -226,7 +239,6 @@ def view_replay_list():
     logo     = PARAMS.get("logo", "")
     api      = get_api()
 
-    import datetime
     # EPG schedule for that one day
     try:
         from_iso = "{}T00:00:00.000Z".format(date_str)
@@ -386,8 +398,6 @@ def _start_cap_monitor(api, cap_session):
     The CAP (Concurrent Access Protection) system kills the stream
     after SessionTimeoutSeconds (181s) if pings stop arriving.
     """
-    import threading
-
     interval = int(cap_session.get("CAPIntervalSeconds", 60))
 
     def _monitor():
@@ -400,8 +410,7 @@ def _start_cap_monitor(api, cap_session):
             xbmc.sleep(interval * 1000)
 
             if not player.isPlaying():
-                xbmc.log("[supermediago] CAP: playback stopped, ending heartbeat",
-                         xbmc.LOGDEBUG)
+                debug("CAP: playback stopped, ending heartbeat")
                 break
 
             duration += interval
@@ -463,7 +472,7 @@ def run():
     action  = PARAMS.get("action")
     handler = _ROUTES.get(action)
     if handler is None:
-        xbmc.log("[supermediago] Unknown action: {}".format(action), xbmc.LOGWARNING)
+        log_warn("Unknown action: {}".format(action))
         view_main_menu()
     else:
         handler()
