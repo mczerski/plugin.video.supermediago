@@ -4,7 +4,6 @@ Uses the new getVideoInfoTag() API (Kodi 20+) instead of deprecated setInfo().
 """
 
 import datetime
-import sys
 from urllib.parse import urlencode
 
 import xbmcgui
@@ -51,6 +50,7 @@ def end_dir(handle, sort_methods=None, content="videos", cache=False):
 # Channel list
 # ---------------------------------------------------------------------------
 
+
 def add_channel_item(handle, base_url, channel, epg_now=None):
     """
     channel dict from api.get_channel_list():
@@ -61,25 +61,20 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
              OR bare stub from FilterNowOnTvTiles: {id, codename, from, to}
     """
     codename = channel.get("codename", "")
-    title    = channel.get("title", codename)
-    logo     = channel.get("logo", "")
-    order    = channel.get("order", 999)
+    title = channel.get("title", codename)
+    logo = channel.get("logo", "")
+    order = channel.get("order", 999)
 
     # --- Extract EPG data (handles both full tile and bare stub) ---
     epg_title = ""
-    epg_plot  = ""
+    epg_plot = ""
     if epg_now:
-        epg_title = (epg_now.get("Title")
-                     or _codename_to_display(
-                            epg_now.get("Codename", "")))
-        epg_plot  = (epg_now.get("Description")
-                     or epg_now.get("ShortDescription")
-                     or "")
+        epg_title = epg_now.get("Title") or _codename_to_display(epg_now.get("Codename", ""))
+        epg_plot = epg_now.get("Description") or epg_now.get("ShortDescription") or ""
 
     label = "{} - {}: {}".format(order, title, epg_title)
 
-    play_url = build_url(base_url, action="play_live", codename=codename,
-                         title=label, logo=logo)
+    play_url = build_url(base_url, action="play_live", codename=codename, title=label, logo=logo)
 
     li = xbmcgui.ListItem(label=label)
 
@@ -98,20 +93,27 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
     # Context menu
     ctx = []
     if channel.get("has_catchup"):
-        ctx.append((
-            _s(32003),
-            "Container.Update({})".format(
-                build_url(base_url, action="replay_dates",
-                          codename=codename, title=title, logo=logo)
+        ctx.append(
+            (
+                _s(32003),
+                "Container.Update({})".format(
+                    build_url(
+                        base_url,
+                        action="replay_dates",
+                        codename=codename,
+                        title=title,
+                        logo=logo,
+                    )
+                ),
             )
-        ))
+        )
     if channel.get("has_npvr"):
-        ctx.append((
-            _s(32116),
-            "RunPlugin({})".format(
-                build_url(base_url, action="record_channel", codename=codename)
+        ctx.append(
+            (
+                _s(32116),
+                "RunPlugin({})".format(build_url(base_url, action="record_channel", codename=codename)),
             )
-        ))
+        )
     if ctx:
         li.addContextMenuItems(ctx)
 
@@ -122,17 +124,22 @@ def add_channel_item(handle, base_url, channel, epg_now=None):
 # Replay TV
 # ---------------------------------------------------------------------------
 
+
 def add_replay_date_items(handle, base_url, codename, title, logo, catchup_days=3):
     today = datetime.date.today()
     labels = [_s(32008), _s(32009), _s(32114), _s(32115)]
     for i in range(min(catchup_days, len(labels))):
-        d   = today - datetime.timedelta(days=i)
+        d = today - datetime.timedelta(days=i)
         lbl = labels[i]
-        url = build_url(base_url, action="replay_list",
-                        codename=codename, title=title, logo=logo,
-                        date=d.strftime("%Y-%m-%d"))
-        add_dir(handle, lbl, url, is_folder=True,
-                art={"thumb": logo, "icon": logo})
+        url = build_url(
+            base_url,
+            action="replay_list",
+            codename=codename,
+            title=title,
+            logo=logo,
+            date=d.strftime("%Y-%m-%d"),
+        )
+        add_dir(handle, lbl, url, is_folder=True, art={"thumb": logo, "icon": logo})
 
 
 def add_program_item(handle, base_url, prog, channel_logo=""):
@@ -140,13 +147,13 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
     prog tile from FilterProgramTiles / GetTiles:
       { id, codename, from, to, title?, images? }
     """
-    prog_id  = prog.get("Id", "")
+    prog_id = prog.get("Id", "")
     codename = prog.get("Codename", "")
-    title    = prog.get("Title", "") or _codename_to_display(codename)
+    title = prog.get("Title", "") or _codename_to_display(codename)
     short_description = prog.get("ShortDescription", "")
     description = prog.get("Description", "")
-    start    = _parse_iso(prog.get("Start", ""))
-    end      = _parse_iso(prog.get("Stop", ""))
+    start = _parse_iso(prog.get("Start", ""))
+    end = _parse_iso(prog.get("Stop", ""))
 
     # Get thumbnail from images
     thumb = channel_logo
@@ -156,10 +163,9 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
             break
 
     duration = int((end - start).total_seconds()) if start and end else 0
-    label    = "{} {}".format(start.strftime("%H:%M") if start else "", title).strip()
+    label = "{} {}".format(start.strftime("%H:%M") if start else "", title).strip()
 
-    play_url = build_url(base_url, action="play_replay",
-                         tile_id=prog_id, title=title, logo=thumb)
+    play_url = build_url(base_url, action="play_replay", tile_id=prog_id, title=title, logo=thumb)
 
     li = xbmcgui.ListItem(label=label)
     li.setArt({"thumb": thumb})
@@ -181,22 +187,22 @@ def add_program_item(handle, base_url, prog, channel_logo=""):
 # Recordings
 # ---------------------------------------------------------------------------
 
+
 def add_recording_item(handle, base_url, rec):
-    rec_id  = rec.get("id", "")
-    title   = rec.get("title", rec_id)
-    status  = rec.get("status", "")
-    thumb   = rec.get("thumbnail", "")
+    rec_id = rec.get("id", "")
+    title = rec.get("title", rec_id)
+    status = rec.get("status", "")
+    thumb = rec.get("thumbnail", "")
 
     status_labels = {
-        "scheduled":  "[{}] ".format(_s(32118)),
-        "recording":  "[{}] ".format(_s(32119)),
-        "completed":  "",
+        "scheduled": "[{}] ".format(_s(32118)),
+        "recording": "[{}] ".format(_s(32119)),
+        "completed": "",
     }
     label = "{}{}".format(status_labels.get(status, ""), title)
 
-    is_playable = (status == "completed")
-    play_url    = build_url(base_url, action="play_recording",
-                            rec_id=rec_id, title=title) if is_playable else base_url
+    is_playable = status == "completed"
+    play_url = build_url(base_url, action="play_recording", rec_id=rec_id, title=title) if is_playable else base_url
 
     li = xbmcgui.ListItem(label=label)
     if thumb:
@@ -207,9 +213,12 @@ def add_recording_item(handle, base_url, rec):
 
     if is_playable:
         li.setProperty("IsPlayable", "true")
-        ctx = [(_s(32117), "RunPlugin({})".format(
-            build_url(base_url, action="delete_recording", rec_id=rec_id)
-        ))]
+        ctx = [
+            (
+                _s(32117),
+                "RunPlugin({})".format(build_url(base_url, action="delete_recording", rec_id=rec_id)),
+            )
+        ]
         li.addContextMenuItems(ctx)
 
     xbmcplugin.addDirectoryItem(handle, play_url, li, False)
@@ -218,6 +227,7 @@ def add_recording_item(handle, base_url, rec):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _parse_iso(s):
     if not s:

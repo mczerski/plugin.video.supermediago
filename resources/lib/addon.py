@@ -17,9 +17,9 @@ import xbmcplugin
 
 from urllib.parse import parse_qs
 
-from resources.lib.api import InsysGoAPI, AuthError, DeviceError, NetworkError, APIError
-from resources.lib.player import resolve_stream
-from resources.lib.ui import (
+from insysgo.api import InsysGoAPI, AuthError, DeviceError, NetworkError
+from insysgo.player import resolve_stream
+from insysgo.ui import (
     build_url,
     add_dir,
     end_dir,
@@ -28,7 +28,7 @@ from resources.lib.ui import (
     add_program_item,
     add_recording_item,
 )
-from resources.lib.logging import log_error, log_warn, debug
+from insysgo.logging import log_error, log_warn, debug
 
 
 def parse_params(argv2):
@@ -63,6 +63,7 @@ def get_api():
 # Auth helpers
 # ---------------------------------------------------------------------------
 
+
 def require_login():
     api = get_api()
     if api.is_logged_in():
@@ -83,8 +84,7 @@ def require_login():
         pd.close()
 
     if ok:
-        xbmcgui.Dialog().notification(
-            _s(32000), _s(32101), xbmcgui.NOTIFICATION_INFO, 3000)
+        xbmcgui.Dialog().notification(_s(32000), _s(32101), xbmcgui.NOTIFICATION_INFO, 3000)
         return True
 
     xbmcgui.Dialog().ok(_s(32000), _s(32102))
@@ -104,31 +104,43 @@ def _handle_error(ex):
         msg = _s(32105)
     else:
         msg = _s(32107)
-    xbmcgui.Dialog().notification(
-        _s(32000), msg, xbmcgui.NOTIFICATION_ERROR, 5000)
+    xbmcgui.Dialog().notification(_s(32000), msg, xbmcgui.NOTIFICATION_ERROR, 5000)
 
 
 # ---------------------------------------------------------------------------
 # Views (directory listings)
 # ---------------------------------------------------------------------------
 
+
 def view_main_menu():
-    add_dir(HANDLE, _s(32002),
-            build_url(BASE_URL, action="channels"),
-            art={"icon": "DefaultTVShows.png"})
+    add_dir(
+        HANDLE,
+        _s(32002),
+        build_url(BASE_URL, action="channels"),
+        art={"icon": "DefaultTVShows.png"},
+    )
 
-    add_dir(HANDLE, _s(32003),
-            build_url(BASE_URL, action="replay_channels"),
-            art={"icon": "DefaultRecentlyAddedEpisodes.png"})
+    add_dir(
+        HANDLE,
+        _s(32003),
+        build_url(BASE_URL, action="replay_channels"),
+        art={"icon": "DefaultRecentlyAddedEpisodes.png"},
+    )
 
-    add_dir(HANDLE, _s(32004),
-            build_url(BASE_URL, action="recordings"),
-            art={"icon": "DefaultVideoPlaylists.png"})
+    add_dir(
+        HANDLE,
+        _s(32004),
+        build_url(BASE_URL, action="recordings"),
+        art={"icon": "DefaultVideoPlaylists.png"},
+    )
 
-    add_dir(HANDLE, _s(32005),
-            build_url(BASE_URL, action="settings"),
-            is_folder=False,
-            art={"icon": "DefaultAddon.png"})
+    add_dir(
+        HANDLE,
+        _s(32005),
+        build_url(BASE_URL, action="settings"),
+        is_folder=False,
+        art={"icon": "DefaultAddon.png"},
+    )
 
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE], content="")
 
@@ -162,8 +174,8 @@ def view_channels():
                 cname = ch_data.get("Codename", "")
                 progs = ch_data.get("Programs", [])
                 if cname and progs:
-                    prog      = progs[0]
-                    prog_id   = prog.get("Id", "")
+                    prog = progs[0]
+                    prog_id = prog.get("Id", "")
                     if prog_id:
                         prog_id_to_channel[prog_id] = cname
                     # Store bare stub as fallback (has codename for display)
@@ -176,7 +188,7 @@ def view_channels():
                     tiles = api.get_tile_details(list(prog_id_to_channel.keys()))
                     for tile in tiles:
                         tile_id = tile.get("Id", "")
-                        cname   = prog_id_to_channel.get(tile_id, "")
+                        cname = prog_id_to_channel.get(tile_id, "")
                         if cname:
                             epg_now_map[cname] = tile  # replace stub with full metadata
                 except Exception:
@@ -209,20 +221,28 @@ def view_replay_channels():
         return
 
     for ch in channels:
-        url = build_url(BASE_URL, action="replay_dates",
-                        codename=ch["codename"], title=ch["title"],
-                        logo=ch.get("logo", ""),
-                        catchup_days=ch.get("catchup_days", 3))
-        add_dir(HANDLE, ch["title"], url,
-                art={"thumb": ch.get("logo", ""), "icon": ch.get("logo", "")})
+        url = build_url(
+            BASE_URL,
+            action="replay_dates",
+            codename=ch["codename"],
+            title=ch["title"],
+            logo=ch.get("logo", ""),
+            catchup_days=ch.get("catchup_days", 3),
+        )
+        add_dir(
+            HANDLE,
+            ch["title"],
+            url,
+            art={"thumb": ch.get("logo", ""), "icon": ch.get("logo", "")},
+        )
 
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE])
 
 
 def view_replay_dates():
-    codename    = PARAMS.get("codename", "")
-    title       = PARAMS.get("title", codename)
-    logo        = PARAMS.get("logo", "")
+    codename = PARAMS.get("codename", "")
+    title = PARAMS.get("title", codename)
+    logo = PARAMS.get("logo", "")
     catchup_days = int(PARAMS.get("catchup_days", 3))
     add_replay_date_items(HANDLE, BASE_URL, codename, title, logo, catchup_days)
     end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE])
@@ -236,15 +256,15 @@ def view_replay_list():
 
     codename = PARAMS.get("codename", "")
     date_str = PARAMS.get("date", "")
-    logo     = PARAMS.get("logo", "")
-    api      = get_api()
+    logo = PARAMS.get("logo", "")
+    api = get_api()
 
     # EPG schedule for that one day
     try:
         from_iso = "{}T00:00:00.000Z".format(date_str)
-        to_iso   = "{}T23:59:59.000Z".format(date_str)
+        to_iso = "{}T23:59:59.000Z".format(date_str)
         schedule = api.get_epg_schedule([codename], from_iso, to_iso)
-        progs    = schedule.get(codename, [])
+        progs = schedule.get(codename, [])
     except Exception as ex:
         _handle_error(ex)
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
@@ -260,19 +280,17 @@ def view_replay_list():
     tile_map = {}
     if tile_ids:
         try:
-            tiles    = api.get_tile_details(tile_ids[:50])  # first 50
+            tiles = api.get_tile_details(tile_ids[:50])  # first 50
             tile_map = {t["Id"]: t for t in tiles}
         except Exception:
             pass
 
     for prog in sorted(progs, key=lambda p: p.get("From", "")):
-        pid  = prog.get("Id", "")
+        pid = prog.get("Id", "")
         meta = tile_map.get(pid, prog)
         add_program_item(HANDLE, BASE_URL, meta, channel_logo=logo)
 
-    end_dir(HANDLE,
-            sort_methods=[xbmcplugin.SORT_METHOD_NONE],
-            content="episodes")
+    end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE], content="episodes")
 
 
 def view_recordings():
@@ -296,14 +314,13 @@ def view_recordings():
     for rec in recs:
         add_recording_item(HANDLE, BASE_URL, rec)
 
-    end_dir(HANDLE,
-            sort_methods=[xbmcplugin.SORT_METHOD_NONE],
-            content="episodes")
+    end_dir(HANDLE, sort_methods=[xbmcplugin.SORT_METHOD_NONE], content="episodes")
 
 
 # ---------------------------------------------------------------------------
 # Playback actions
 # ---------------------------------------------------------------------------
+
 
 def _play_acquire(codename, title, logo, is_replay=False, tile_id=None):
     """Shared logic for live + replay playback via AcquireContent."""
@@ -311,7 +328,7 @@ def _play_acquire(codename, title, logo, is_replay=False, tile_id=None):
         xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
         return
 
-    api   = get_api()
+    api = get_api()
     prefer_dash = ADDON.getSetting("stream_type") == "0"
 
     try:
@@ -328,7 +345,7 @@ def _play_acquire(codename, title, logo, is_replay=False, tile_id=None):
             try:
                 api.register_device()
                 acquire_data = api.acquire_content(codename)
-                stream       = api.pick_stream(acquire_data, prefer_dash=prefer_dash)
+                stream = api.pick_stream(acquire_data, prefer_dash=prefer_dash)
             except Exception as ex2:
                 _handle_error(ex2)
                 xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
@@ -353,22 +370,22 @@ def _play_acquire(codename, title, logo, is_replay=False, tile_id=None):
 
 def action_play_live():
     codename = PARAMS.get("codename", "")
-    title    = PARAMS.get("title", codename)
-    logo     = PARAMS.get("logo", "")
+    title = PARAMS.get("title", codename)
+    logo = PARAMS.get("logo", "")
     _play_acquire(codename, title, logo)
 
 
 def action_play_replay():
-    tile_id  = PARAMS.get("tile_id", "")
-    title    = PARAMS.get("title", "")
-    logo     = PARAMS.get("logo", "")
+    tile_id = PARAMS.get("tile_id", "")
+    title = PARAMS.get("title", "")
+    logo = PARAMS.get("logo", "")
     codename = PARAMS.get("codename", "")
     _play_acquire(codename, title, logo, is_replay=True, tile_id=tile_id)
 
 
 def action_play_recording():
     rec_id = PARAMS.get("rec_id", "")
-    title  = PARAMS.get("title", "")
+    title = PARAMS.get("title", "")
     if not require_login():
         xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
         return
@@ -376,8 +393,8 @@ def action_play_recording():
     api = get_api()
     try:
         acquire_data = api.acquire_content(rec_id)
-        prefer_dash  = ADDON.getSetting("stream_type") == "0"
-        stream       = api.pick_stream(acquire_data, prefer_dash=prefer_dash)
+        prefer_dash = ADDON.getSetting("stream_type") == "0"
+        stream = api.pick_stream(acquire_data, prefer_dash=prefer_dash)
     except Exception as ex:
         _handle_error(ex)
         xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
@@ -390,6 +407,7 @@ def action_play_recording():
 # CAP heartbeat (background thread)
 # ---------------------------------------------------------------------------
 
+
 def _start_cap_monitor(api, cap_session):
     """
     Sends CAP/Ping every CAPIntervalSeconds while Kodi is playing.
@@ -401,9 +419,9 @@ def _start_cap_monitor(api, cap_session):
     interval = int(cap_session.get("CAPIntervalSeconds", 60))
 
     def _monitor():
-        counter  = 1
+        counter = 1
         duration = 0
-        player   = xbmc.Player()
+        player = xbmc.Player()
 
         while True:
             # Wait one interval or until playback stops
@@ -425,14 +443,14 @@ def _start_cap_monitor(api, cap_session):
 # Other actions
 # ---------------------------------------------------------------------------
 
+
 def action_delete_recording():
     rec_id = PARAMS.get("rec_id", "")
     if not xbmcgui.Dialog().yesno(_s(32000), _s(32117)):
         return
     api = get_api()
     if api.delete_recording(rec_id):
-        xbmcgui.Dialog().notification(
-            _s(32000), _s(32117), xbmcgui.NOTIFICATION_INFO, 2000)
+        xbmcgui.Dialog().notification(_s(32000), _s(32117), xbmcgui.NOTIFICATION_INFO, 2000)
         xbmc.executebuiltin("Container.Refresh")
 
 
@@ -442,8 +460,7 @@ def action_settings():
 
 def action_logout():
     get_api().logout()
-    xbmcgui.Dialog().notification(
-        _s(32000), _s(32122), xbmcgui.NOTIFICATION_INFO, 2000)
+    xbmcgui.Dialog().notification(_s(32000), _s(32122), xbmcgui.NOTIFICATION_INFO, 2000)
 
 
 # ---------------------------------------------------------------------------
@@ -451,25 +468,25 @@ def action_logout():
 # ---------------------------------------------------------------------------
 
 _ROUTES = {
-    None:               view_main_menu,
-    "":                 view_main_menu,
-    "channels":         view_channels,
-    "replay_channels":  view_replay_channels,
-    "replay_dates":     view_replay_dates,
-    "replay_list":      view_replay_list,
-    "recordings":       view_recordings,
-    "play_live":        action_play_live,
-    "play_replay":      action_play_replay,
-    "play_recording":   action_play_recording,
+    None: view_main_menu,
+    "": view_main_menu,
+    "channels": view_channels,
+    "replay_channels": view_replay_channels,
+    "replay_dates": view_replay_dates,
+    "replay_list": view_replay_list,
+    "recordings": view_recordings,
+    "play_live": action_play_live,
+    "play_replay": action_play_replay,
+    "play_recording": action_play_recording,
     "delete_recording": action_delete_recording,
-    "record_channel":   lambda: None,   # stub – schedule from EPG event needed
-    "settings":         action_settings,
-    "logout":           action_logout,
+    "record_channel": lambda: None,  # stub – schedule from EPG event needed
+    "settings": action_settings,
+    "logout": action_logout,
 }
 
 
 def run():
-    action  = PARAMS.get("action")
+    action = PARAMS.get("action")
     handler = _ROUTES.get(action)
     if handler is None:
         log_warn("Unknown action: {}".format(action))

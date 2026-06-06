@@ -37,7 +37,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-import xbmc
 import xbmcaddon
 import xbmcvfs
 
@@ -52,8 +51,10 @@ PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
 # Session / token cache
 # ---------------------------------------------------------------------------
 
+
 class _SessionCache:
     """Persists auth token and deviceKey between Kodi sessions."""
+
     _PATH = None
 
     @classmethod
@@ -93,16 +94,20 @@ class _SessionCache:
 # Exceptions
 # ---------------------------------------------------------------------------
 
+
 class APIError(Exception):
     def __init__(self, message, code=0):
         super().__init__(message)
         self.code = code
 
+
 class AuthError(APIError):
     pass
 
+
 class DeviceError(APIError):
     pass
+
 
 class NetworkError(APIError):
     pass
@@ -111,6 +116,7 @@ class NetworkError(APIError):
 # ---------------------------------------------------------------------------
 # Main API client
 # ---------------------------------------------------------------------------
+
 
 class InsysGoAPI:
     """
@@ -122,10 +128,10 @@ class InsysGoAPI:
 
     # Confirmed from HAR: all API calls go to this host
     _DEFAULT_BASE = "https://api-supermedia.app.insysgo.pl"
-    _CAP_URL      = "https://cap-ha.app.insysgo.pl/v1/CAP/Ping"
+    _CAP_URL = "https://cap-ha.app.insysgo.pl/v1/CAP/Ping"
 
     # Media type codes found in AcquireContent response
-    FORMAT_TYPE_HLS  = 2
+    FORMAT_TYPE_HLS = 2
     FORMAT_TYPE_DASH = 9
 
     def __init__(self):
@@ -135,32 +141,28 @@ class InsysGoAPI:
         # Build a stable device key from the Kodi machine name
         # Must be 32 hex chars – matches format seen in HAR (c13d18266a8f47b86e41566e6a7ab0ba)
         machine_seed = ADDON.getSetting("device_name") or "Kodi"
-        self._device_key = hashlib.md5(
-            ("supermediago-kodi-" + machine_seed).encode()
-        ).hexdigest()
+        self._device_key = hashlib.md5(("supermediago-kodi-" + machine_seed).encode()).hexdigest()
 
         # Session state
-        cache              = _SessionCache.load()
-        self._token        = cache.get("token", "")
+        cache = _SessionCache.load()
+        self._token = cache.get("token", "")
         self._token_expiry = cache.get("token_expiry", 0)  # unix timestamp
-        self._user_id      = cache.get("user_id", 0)
+        self._user_id = cache.get("user_id", 0)
         self._device_registered = cache.get("device_registered", False)
 
         # HTTP session with retry
         self._session = requests.Session()
-        adapter = HTTPAdapter(
-            max_retries=Retry(total=3, backoff_factor=0.5,
-                              status_forcelist=[500, 502, 503, 504])
-        )
+        adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504]))
         self._session.mount("https://", adapter)
-        self._session.headers.update({
-            "Accept":          "application/json",
-            "Content-Type":    "application/json;charset=utf-8",
-            "Origin":          "https://www.supermediago.pl",
-            "Referer":         "https://www.supermediago.pl/",
-            "User-Agent":      "Mozilla/5.0 (compatible; Kodi/{})".format(
-                                   ADDON.getAddonInfo("version")),
-        })
+        self._session.headers.update(
+            {
+                "Accept": "application/json",
+                "Content-Type": "application/json;charset=utf-8",
+                "Origin": "https://www.supermediago.pl",
+                "Referer": "https://www.supermediago.pl/",
+                "User-Agent": "Mozilla/5.0 (compatible; Kodi/{})".format(ADDON.getAddonInfo("version")),
+            }
+        )
 
     # -------------------------------------------------------------------------
     # Internal helpers
@@ -243,9 +245,9 @@ class InsysGoAPI:
         """
         body = {
             "platformCodename": self._platform,
-            "login":            username,
-            "password":         password,
-            "longExpiration":   False,
+            "login": username,
+            "password": password,
+            "longExpiration": False,
         }
         try:
             data = self._post("/v1/InsysGoAccount/Authenticate", body)
@@ -260,31 +262,33 @@ class InsysGoAPI:
 
         # Parse expiry — "tokenExpirationTime": "2026-06-05T23:29:44+02:00"
         expiry_str = data.get("TokenExpirationTime", "")
-        expiry_ts  = self._parse_expiry(expiry_str)
+        expiry_ts = self._parse_expiry(expiry_str)
 
-        self._token        = token
+        self._token = token
         self._token_expiry = expiry_ts
-        self._user_id      = data.get("UserId", 0)
+        self._user_id = data.get("UserId", 0)
         self._device_registered = False  # force re-register on new login
 
         # Cache available channel capabilities from profile
         profile = data.get("Profile", {})
-        avail   = {str(c["id"]): c for c in profile.get("availableChannels", [])}
+        avail = {str(c["id"]): c for c in profile.get("availableChannels", [])}
 
-        _SessionCache.save({
-            "token":              self._token,
-            "token_expiry":       self._token_expiry,
-            "user_id":            self._user_id,
-            "device_registered":  False,
-            "available_channels": avail,
-        })
+        _SessionCache.save(
+            {
+                "token": self._token,
+                "token_expiry": self._token_expiry,
+                "user_id": self._user_id,
+                "device_registered": False,
+                "available_channels": avail,
+            }
+        )
         log_info("Login OK, userId={}, token={}...".format(self._user_id, token[:8]))
         return True
 
     def logout(self):
-        self._token        = ""
+        self._token = ""
         self._token_expiry = 0
-        self._user_id      = 0
+        self._user_id = 0
         self._device_registered = False
         _SessionCache.clear()
 
@@ -304,14 +308,14 @@ class InsysGoAPI:
 
         body = {
             "platformCodename": self._platform,
-            "deviceKey":        self._device_key,
-            "userToken":        self._token,
-            "pushToken":        "",
-            "generalDeviceType": "2",   # 2 = STB/Smart TV in InsysGO
-            "deviceName":       ADDON.getSetting("device_name") or "Kodi",
-            "userAgent":        "Kodi/{}".format(ADDON.getAddonInfo("version")),
-            "operatingSystem":  "Linux",
-            "versionOs":        "x86_64",
+            "deviceKey": self._device_key,
+            "userToken": self._token,
+            "pushToken": "",
+            "generalDeviceType": "2",  # 2 = STB/Smart TV in InsysGO
+            "deviceName": ADDON.getSetting("device_name") or "Kodi",
+            "userAgent": "Kodi/{}".format(ADDON.getAddonInfo("version")),
+            "operatingSystem": "Linux",
+            "versionOs": "x86_64",
         }
         try:
             data = self._post("/v1/Devices/RegisterDevice", body)
@@ -355,8 +359,8 @@ class InsysGoAPI:
         """
         # Step 1 – get tile IDs
         body1 = {
-            "platformCodename":      self._platform,
-            "token":                 self._token,
+            "platformCodename": self._platform,
+            "token": self._token,
             "isParentalControlEnabled": False,
         }
         data1 = self._post("/v1/EpgTile/FilterChannelTiles", body1)
@@ -366,7 +370,7 @@ class InsysGoAPI:
         codename_map = {}
         for group in channel_groups:
             for tile in group.get("Tiles", []):
-                tid      = tile.get("Id", "")
+                tid = tile.get("Id", "")
                 codename = tile.get("Codename", "")
                 if tid:
                     tile_ids.append(tid)
@@ -378,10 +382,10 @@ class InsysGoAPI:
         # Step 2 – get full tile metadata in batches of 50
         tiles = []
         for i in range(0, len(tile_ids), 50):
-            batch = tile_ids[i:i + 50]
+            batch = tile_ids[i : i + 50]
             body2 = {
                 "platformCodename": self._platform,
-                "requestedTiles":   [{"id": tid} for tid in batch],
+                "requestedTiles": [{"id": tid} for tid in batch],
             }
             if self._token:
                 body2["Token"] = self._token
@@ -391,7 +395,7 @@ class InsysGoAPI:
         # Merge codenames back in and normalise
         result = []
         for tile in tiles:
-            tile_id  = tile.get("Id", "")
+            tile_id = tile.get("Id", "")
             codename = tile.get("Codename", "")
             logo_url = ""
             for img in tile.get("Images", []):
@@ -404,18 +408,20 @@ class InsysGoAPI:
                         logo_url = img.get("Url", "")
                         break
 
-            result.append({
-                "id":              tile_id,
-                "codename":        codename,
-                "title":           tile.get("Title", codename),
-                "logo":            logo_url,
-                "order":           tile.get("OrderNumber", 999),
-                "category":        (tile.get("ChannelCategory") or {}).get("Name", ""),
-                "has_catchup":     tile.get("IsCatchupEnabled", False),
-                "catchup_days":    tile.get("CatchupDays", 0),
-                "has_npvr":        tile.get("IsNpvrEnabled", False),
-                "is_adult":        tile.get("IsAdultContent", False),
-            })
+            result.append(
+                {
+                    "id": tile_id,
+                    "codename": codename,
+                    "title": tile.get("Title", codename),
+                    "logo": logo_url,
+                    "order": tile.get("OrderNumber", 999),
+                    "category": (tile.get("ChannelCategory") or {}).get("Name", ""),
+                    "has_catchup": tile.get("IsCatchupEnabled", False),
+                    "catchup_days": tile.get("CatchupDays", 0),
+                    "has_npvr": tile.get("IsNpvrEnabled", False),
+                    "is_adult": tile.get("IsAdultContent", False),
+                }
+            )
 
         result.sort(key=lambda c: c["order"])
         return result
@@ -449,9 +455,9 @@ class InsysGoAPI:
         Note: program tiles only have id/codename/from/to — use get_tile_details for metadata.
         """
         body = {
-            "platformCodename":  self._platform,
-            "from":              from_iso,
-            "to":                to_iso,
+            "platformCodename": self._platform,
+            "from": from_iso,
+            "to": to_iso,
             "orChannelCodenames": channel_codenames,
         }
         if self._token:
@@ -466,7 +472,7 @@ class InsysGoAPI:
         """
         body = {
             "platformCodename": self._platform,
-            "requestedTiles":   [{"id": tid} for tid in tile_ids],
+            "requestedTiles": [{"id": tid} for tid in tile_ids],
         }
         if self._token:
             body["token"] = self._token
@@ -523,14 +529,14 @@ class InsysGoAPI:
 
         params = {
             "deviceKey": self._device_key,
-            "codename":  channel_codename,
-            "t":         str(int(time.time() * 1000)),
+            "codename": channel_codename,
+            "t": str(int(time.time() * 1000)),
         }
         data = self._get("/v1/Player/AcquireContent", params)
 
         result = data.get("Result", {})
         if not result.get("Success", False):
-            code     = result.get("Code", -1)
+            code = result.get("Code", -1)
             msg_code = result.get("MessageCodename", "")
             log_error("AcquireContent failed: code={} msg={}".format(code, msg_code))
             if code in (9122, 9120):
@@ -552,10 +558,10 @@ class InsysGoAPI:
 
         Returns dict: { url, type ("dash"|"hls"), drm_info }
         """
-        prefer_type  = self.FORMAT_TYPE_DASH if prefer_dash else self.FORMAT_TYPE_HLS
+        prefer_type = self.FORMAT_TYPE_DASH if prefer_dash else self.FORMAT_TYPE_HLS
         fallback_type = self.FORMAT_TYPE_HLS if prefer_dash else self.FORMAT_TYPE_DASH
 
-        best_url  = ""
+        best_url = ""
         best_type = ""
 
         for mf in acquire_data.get("MediaFiles", []):
@@ -563,11 +569,11 @@ class InsysGoAPI:
                 continue
             formats = {f["Type"]: f for f in mf.get("Formats", []) if "Url" in f}
             if prefer_type in formats:
-                best_url  = formats[prefer_type]["Url"]
+                best_url = formats[prefer_type]["Url"]
                 best_type = "dash" if prefer_type == self.FORMAT_TYPE_DASH else "hls"
                 break
             if fallback_type in formats:
-                best_url  = formats[fallback_type]["Url"]
+                best_url = formats[fallback_type]["Url"]
                 best_type = "hls" if fallback_type == self.FORMAT_TYPE_HLS else "dash"
                 break
 
@@ -579,16 +585,16 @@ class InsysGoAPI:
         for drm in acquire_data.get("DrmInfo", []):
             if drm.get("DrmSystem", "").lower() == "widevine":
                 drm_info = {
-                    "license_url":       drm["LicenseServerUrl"],
-                    "challenge_data":    drm.get("DrmChallengeCustomData", ""),
+                    "license_url": drm["LicenseServerUrl"],
+                    "challenge_data": drm.get("DrmChallengeCustomData", ""),
                 }
                 break
 
         return {
-            "url":      best_url,
-            "type":     best_type,
+            "url": best_url,
+            "type": best_type,
             "drm_info": drm_info,
-            "cap":      acquire_data.get("Cap"),
+            "cap": acquire_data.get("Cap"),
             "signature": acquire_data.get("Signature", ""),
         }
 
@@ -609,18 +615,18 @@ class InsysGoAPI:
         if not cap_session:
             return None
         body = {
-            "SessionId":       cap_session.get("SessionId", ""),
+            "SessionId": cap_session.get("SessionId", ""),
             "DurationSeconds": duration_seconds,
             "ProgressSeconds": -1,
-            "Counter":         counter,
-            "Status":          "Play",
-            "Signature":       "",  # server accepts empty on CAP pings from web
+            "Counter": counter,
+            "Status": "Play",
+            "Signature": "",  # server accepts empty on CAP pings from web
         }
         try:
             return self._post(
                 "/v1/CAP/Ping",
                 body,
-                raw_url=cap_session.get("CAPPublicUrl", self._CAP_URL)
+                raw_url=cap_session.get("CAPPublicUrl", self._CAP_URL),
             )
         except Exception as ex:
             log_warn("CAP ping failed: {}".format(ex))
@@ -664,15 +670,14 @@ class InsysGoAPI:
         """Schedule nPVR recording for an EPG event."""
         body = {
             "platformCodename": self._platform,
-            "token":            self._token,
-            "eventId":          event_id,
+            "token": self._token,
+            "eventId": event_id,
         }
         return self._post("/v1/IpottPlaylist/ScheduleRecording", body)
 
     def delete_recording(self, recording_id):
         """Delete a completed or scheduled recording."""
-        return self._delete("/v1/IpottPlaylist/DeleteRecording",
-                            {"recordingId": recording_id})
+        return self._delete("/v1/IpottPlaylist/DeleteRecording", {"recordingId": recording_id})
 
     # -------------------------------------------------------------------------
     # Helpers
