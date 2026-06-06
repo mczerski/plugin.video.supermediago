@@ -1,4 +1,4 @@
-# plugin.video.supermediago v2.0.0
+# plugin.video.supermediago v0.1.0
 
 Nieoficjalny dodatek Kodi dla usługi **SupermediaGO** (supermediago.pl),
 oparty na analizie pliku HAR z przeglądarki.
